@@ -1,0 +1,42 @@
+15:08:33 **** Incremental Build of configuration Debug for project I2Clab5 ****
+make -j12 all 
+arm-none-eabi-gcc "../Core/Src/main.c" -mcpu=cortex-m7 -std=gnu11 -g3 -DDEBUG -DUSE_HAL_DRIVER -DSTM32F746xx -c -I../Core/Inc -I../Drivers/STM32F7xx_HAL_Driver/Inc -I../Drivers/STM32F7xx_HAL_Driver/Inc/Legacy -I../Drivers/CMSIS/Device/ST/STM32F7xx/Include -I../Drivers/CMSIS/Include -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -fcyclomatic-complexity -MMD -MP -MF"Core/Src/main.d" -MT"Core/Src/main.o" --specs=nano.specs -mfpu=fpv5-sp-d16 -mfloat-abi=hard -mthumb -o "Core/Src/main.o"
+arm-none-eabi-gcc "../Core/Src/stm32f7xx_it.c" -mcpu=cortex-m7 -std=gnu11 -g3 -DDEBUG -DUSE_HAL_DRIVER -DSTM32F746xx -c -I../Core/Inc -I../Drivers/STM32F7xx_HAL_Driver/Inc -I../Drivers/STM32F7xx_HAL_Driver/Inc/Legacy -I../Drivers/CMSIS/Device/ST/STM32F7xx/Include -I../Drivers/CMSIS/Include -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -fcyclomatic-complexity -MMD -MP -MF"Core/Src/stm32f7xx_it.d" -MT"Core/Src/stm32f7xx_it.o" --specs=nano.specs -mfpu=fpv5-sp-d16 -mfloat-abi=hard -mthumb -o "Core/Src/stm32f7xx_it.o"
+arm-none-eabi-gcc "../Core/Src/tim.c" -mcpu=cortex-m7 -std=gnu11 -g3 -DDEBUG -DUSE_HAL_DRIVER -DSTM32F746xx -c -I../Core/Inc -I../Drivers/STM32F7xx_HAL_Driver/Inc -I../Drivers/STM32F7xx_HAL_Driver/Inc/Legacy -I../Drivers/CMSIS/Device/ST/STM32F7xx/Include -I../Drivers/CMSIS/Include -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -fcyclomatic-complexity -MMD -MP -MF"Core/Src/tim.d" -MT"Core/Src/tim.o" --specs=nano.specs -mfpu=fpv5-sp-d16 -mfloat-abi=hard -mthumb -o "Core/Src/tim.o"
+../Core/Src/main.c: In function 'UART_TransmitMessage':
+../Core/Src/main.c:75:52: warning: implicit declaration of function 'strlen' [-Wimplicit-function-declaration]
+   75 |         HAL_UART_Transmit(&huart3, (uint8_t*) msg, strlen(msg), HAL_MAX_DELAY);
+      |                                                    ^~~~~~
+../Core/Src/main.c:32:1: note: include '<string.h>' or provide a declaration of 'strlen'
+   31 | #include <stdlib.h>
+  +++ |+#include <string.h>
+   32 | /* USER CODE END Includes */
+../Core/Src/main.c:75:52: warning: incompatible implicit declaration of built-in function 'strlen' [-Wbuiltin-declaration-mismatch]
+   75 |         HAL_UART_Transmit(&huart3, (uint8_t*) msg, strlen(msg), HAL_MAX_DELAY);
+      |                                                    ^~~~~~
+../Core/Src/main.c:75:52: note: include '<string.h>' or provide a declaration of 'strlen'
+../Core/Src/main.c: In function 'HAL_TIM_PeriodElapsedCallback':
+../Core/Src/main.c:91:9: warning: implicit declaration of function 'zad2' [-Wimplicit-function-declaration]
+   91 |         zad2();
+      |         ^~~~
+../Core/Src/main.c: At top level:
+../Core/Src/main.c:107:6: warning: conflicting types for 'zad2'; have 'void()'
+  107 | void zad2()
+      |      ^~~~
+../Core/Src/main.c:91:9: note: previous implicit declaration of 'zad2' with type 'void()'
+   91 |         zad2();
+      |         ^~~~
+arm-none-eabi-gcc -o "I2Clab5.elf" @"objects.list"   -mcpu=cortex-m7 -T"D:\studiarzeczy\workspaces\I2Clab5\STM32F746ZGTX_FLASH.ld" --specs=nosys.specs -Wl,-Map="I2Clab5.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv5-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+Finished building target: I2Clab5.elf
+ 
+arm-none-eabi-size  I2Clab5.elf 
+arm-none-eabi-objdump -h -S I2Clab5.elf  > "I2Clab5.list"
+   text	   data	    bss	    dec	    hex	filename
+  30236	    412	   3820	  34468	   86a4	I2Clab5.elf
+Finished building: default.size.stdout
+ 
+Finished building: I2Clab5.list
+ 
+
+15:08:34 Build Finished. 0 errors, 4 warnings. (took 1s.391ms)
+

@@ -1,0 +1,41 @@
+14:14:22 **** Incremental Build of configuration Debug for project USARTlab2 ****
+make -j12 all 
+arm-none-eabi-gcc "../Core/Src/main.c" -mcpu=cortex-m7 -std=gnu11 -g3 -DDEBUG -DUSE_HAL_DRIVER -DSTM32F746xx -c -I../Core/Inc -I../Drivers/STM32F7xx_HAL_Driver/Inc -I../Drivers/STM32F7xx_HAL_Driver/Inc/Legacy -I../Drivers/CMSIS/Device/ST/STM32F7xx/Include -I../Drivers/CMSIS/Include -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -fcyclomatic-complexity -MMD -MP -MF"Core/Src/main.d" -MT"Core/Src/main.o" --specs=nano.specs -mfpu=fpv5-sp-d16 -mfloat-abi=hard -mthumb -o "Core/Src/main.o"
+../Core/Src/main.c: In function 'HAL_GPIO_EXTI_Callback':
+../Core/Src/main.c:74:11: warning: implicit declaration of function 'zad2' [-Wimplicit-function-declaration]
+   74 |           zad2();
+      |           ^~~~
+../Core/Src/main.c: In function 'zad1':
+../Core/Src/main.c:98:36: warning: pointer targets in passing argument 2 of 'HAL_UART_Transmit' differ in signedness [-Wpointer-sign]
+   98 |         HAL_UART_Transmit(&huart3, buffer, strlen(buffer), HAL_MAX_DELAY);
+      |                                    ^~~~~~
+      |                                    |
+      |                                    char *
+In file included from ../Core/Inc/stm32f7xx_hal_conf.h:415,
+                 from ../Drivers/STM32F7xx_HAL_Driver/Inc/stm32f7xx_hal.h:29,
+                 from ../Core/Inc/main.h:30,
+                 from ../Core/Src/main.c:20:
+../Drivers/STM32F7xx_HAL_Driver/Inc/stm32f7xx_hal_uart.h:1557:79: note: expected 'const uint8_t *' {aka 'const unsigned char *'} but argument is of type 'char *'
+ 1557 | HAL_StatusTypeDef HAL_UART_Transmit(UART_HandleTypeDef *huart, const uint8_t *pData, uint16_t Size, uint32_t Timeout);
+      |                                                                ~~~~~~~~~~~~~~~^~~~~
+../Core/Src/main.c: At top level:
+../Core/Src/main.c:101:6: warning: conflicting types for 'zad2'; have 'void()'
+  101 | void zad2(){
+      |      ^~~~
+../Core/Src/main.c:74:11: note: previous implicit declaration of 'zad2' with type 'void()'
+   74 |           zad2();
+      |           ^~~~
+arm-none-eabi-gcc -o "USARTlab2.elf" @"objects.list"   -mcpu=cortex-m7 -T"D:\studiarzeczy\workspaces\USARTlab2\STM32F746ZGTX_FLASH.ld" --specs=nosys.specs -Wl,-Map="USARTlab2.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv5-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+Finished building target: USARTlab2.elf
+ 
+arm-none-eabi-size  USARTlab2.elf 
+arm-none-eabi-objdump -h -S USARTlab2.elf  > "USARTlab2.list"
+   text	   data	    bss	    dec	    hex	filename
+  21900	    412	   3636	  25948	   655c	USARTlab2.elf
+Finished building: default.size.stdout
+ 
+Finished building: USARTlab2.list
+ 
+
+14:14:24 Build Finished. 0 errors, 3 warnings. (took 1s.309ms)
+

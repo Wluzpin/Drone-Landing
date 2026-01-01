@@ -1,0 +1,10 @@
+../Core/Src/main.c:70:6:HAL_GPIO_EXTI_Callback	2
+../Core/Src/main.c:82:6:HAL_UART_RxCpltCallback	1
+../Core/Src/main.c:95:6:zad1	1
+../Core/Src/main.c:101:6:zad2	1
+../Core/Src/main.c:108:6:zad3	4
+../Core/Src/main.c:127:6:zad4	1
+../Core/Src/main.c:131:6:zad5	7
+../Core/Src/main.c:180:5:main	1
+../Core/Src/main.c:230:6:SystemClock_Config	3
+../Core/Src/main.c:283:6:Error_Handler	1

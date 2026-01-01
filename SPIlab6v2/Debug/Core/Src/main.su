@@ -1,0 +1,15 @@
+../Core/Src/main.c:83:6:BMP_Write_Register	24	static
+../Core/Src/main.c:93:6:HUART_Transmitmessage	16	static
+../Core/Src/main.c:97:6:BMP280_init	16	static
+../Core/Src/main.c:119:9:BMP_Readyte	24	static
+../Core/Src/main.c:130:9:SPI_Odbierz_Temp	24	static
+../Core/Src/main.c:148:6:BMP280_Calibrate	16	static
+../Core/Src/main.c:154:7:BMP280_Calctemp	144	static
+../Core/Src/main.c:204:6:zad2	120	static
+../Core/Src/main.c:225:9:SPI_Odbierz_Press	24	static
+../Core/Src/main.c:245:6:BMP280_Calibrate_Press	16	static
+../Core/Src/main.c:257:7:BMP280_CalcPress	328	static
+../Core/Src/main.c:302:5:zad4	32	static
+../Core/Src/main.c:339:5:main	8	static
+../Core/Src/main.c:390:6:SystemClock_Config	88	static
+../Core/Src/main.c:443:6:Error_Handler	4	static,ignoring_inline_asm

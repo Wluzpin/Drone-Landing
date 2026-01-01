@@ -1,0 +1,4 @@
+#Sun Oct 26 12:39:56 CET 2025
+__DEFAULT__=false
+expression=__HAL_TIM_GET_FLAG
+org.eclipse.help.ui.localSearch.master=true

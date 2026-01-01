@@ -1,0 +1,21 @@
+15:05:35 **** Incremental Build of configuration Debug for project PWMlab3 ****
+make -j12 all 
+arm-none-eabi-gcc "../Core/Src/main.c" -mcpu=cortex-m7 -std=gnu11 -g3 -DDEBUG -DUSE_HAL_DRIVER -DSTM32F746xx -c -I../Core/Inc -I../Drivers/STM32F7xx_HAL_Driver/Inc -I../Drivers/STM32F7xx_HAL_Driver/Inc/Legacy -I../Drivers/CMSIS/Device/ST/STM32F7xx/Include -I../Drivers/CMSIS/Include -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -fcyclomatic-complexity -MMD -MP -MF"Core/Src/main.d" -MT"Core/Src/main.o" --specs=nano.specs -mfpu=fpv5-sp-d16 -mfloat-abi=hard -mthumb -o "Core/Src/main.o"
+../Core/Src/main.c: In function 'HAL_UART_RxCpltCallback':
+../Core/Src/main.c:87:22: warning: implicit declaration of function 'atoi' [-Wimplicit-function-declaration]
+   87 |         int valueR = atoi((char *)&rxBuffer[1]);
+      |                      ^~~~
+arm-none-eabi-gcc -o "PWMlab3.elf" @"objects.list"   -mcpu=cortex-m7 -T"D:\studiarzeczy\workspaces\PWMlab3\STM32F746ZGTX_FLASH.ld" --specs=nosys.specs -Wl,-Map="PWMlab3.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv5-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+Finished building target: PWMlab3.elf
+ 
+arm-none-eabi-size  PWMlab3.elf 
+arm-none-eabi-objdump -h -S PWMlab3.elf  > "PWMlab3.list"
+   text	   data	    bss	    dec	    hex	filename
+  27228	    412	   3836	  31476	   7af4	PWMlab3.elf
+Finished building: default.size.stdout
+ 
+Finished building: PWMlab3.list
+ 
+
+15:05:36 Build Finished. 0 errors, 1 warnings. (took 871ms)
+

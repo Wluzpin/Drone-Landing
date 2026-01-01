@@ -1,0 +1,15 @@
+../Core/Src/main.c:83:6:BMP_Write_Register	1
+../Core/Src/main.c:93:6:HUART_Transmitmessage	1
+../Core/Src/main.c:97:6:BMP280_init	2
+../Core/Src/main.c:119:9:BMP_Readyte	1
+../Core/Src/main.c:130:9:SPI_Odbierz_Temp	1
+../Core/Src/main.c:148:6:BMP280_Calibrate	1
+../Core/Src/main.c:154:7:BMP280_Calctemp	1
+../Core/Src/main.c:204:6:zad2	4
+../Core/Src/main.c:225:9:SPI_Odbierz_Press	1
+../Core/Src/main.c:245:6:BMP280_Calibrate_Press	1
+../Core/Src/main.c:257:7:BMP280_CalcPress	2
+../Core/Src/main.c:302:5:zad4	1
+../Core/Src/main.c:339:5:main	1
+../Core/Src/main.c:390:6:SystemClock_Config	3
+../Core/Src/main.c:443:6:Error_Handler	1

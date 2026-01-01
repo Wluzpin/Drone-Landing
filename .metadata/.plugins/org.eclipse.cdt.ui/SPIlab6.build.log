@@ -1,0 +1,25 @@
+19:56:56 **** Incremental Build of configuration Debug for project SPIlab6 ****
+make -j12 all 
+arm-none-eabi-gcc "../Core/Src/main.c" -mcpu=cortex-m7 -std=gnu11 -g3 -DDEBUG -DUSE_HAL_DRIVER -DSTM32F746xx -c -I../Core/Inc -I../Drivers/STM32F7xx_HAL_Driver/Inc -I../Drivers/STM32F7xx_HAL_Driver/Inc/Legacy -I../Drivers/CMSIS/Device/ST/STM32F7xx/Include -I../Drivers/CMSIS/Include -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -fcyclomatic-complexity -MMD -MP -MF"Core/Src/main.d" -MT"Core/Src/main.o" --specs=nano.specs -mfpu=fpv5-sp-d16 -mfloat-abi=hard -mthumb -o "Core/Src/main.o"
+../Core/Src/main.c: In function 'bmp2_spi_read':
+../Core/Src/main.c:119:13: warning: unused variable 'cs' [-Wunused-variable]
+  119 |     uint8_t cs = *(uint8_t*)intf_ptr;
+      |             ^~
+../Core/Src/main.c: In function 'bmp2_spi_write':
+../Core/Src/main.c:164:13: warning: unused variable 'cs' [-Wunused-variable]
+  164 |     uint8_t cs = *(uint8_t*)intf_ptr;
+      |             ^~
+arm-none-eabi-gcc -o "SPIlab6.elf" @"objects.list"   -mcpu=cortex-m7 -T"D:\studiarzeczy\workspaces\SPIlab6\STM32F746ZGTX_FLASH.ld" --specs=nosys.specs -Wl,-Map="SPIlab6.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv5-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+Finished building target: SPIlab6.elf
+ 
+arm-none-eabi-size  SPIlab6.elf 
+arm-none-eabi-objdump -h -S SPIlab6.elf  > "SPIlab6.list"
+   text	   data	    bss	    dec	    hex	filename
+  26348	    412	   3724	  30484	   7714	SPIlab6.elf
+Finished building: default.size.stdout
+ 
+Finished building: SPIlab6.list
+ 
+
+19:56:57 Build Finished. 0 errors, 2 warnings. (took 944ms)
+
