@@ -1,4 +1,0 @@
-../Core/Src/VL53L1CX.c:117:6:VL53_WriteReg	1
-../Core/Src/VL53L1CX.c:121:9:VL53_ReadReg	1
-../Core/Src/VL53L1CX.c:127:6:VL53_InitRegisters	3
-../Core/Src/VL53L1CX.c:145:10:VL53_ReadDistance	1

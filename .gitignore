@@ -1,0 +1,20 @@
+#Build folders
+Debug/
+Release/
+
+#Object & Build files
+*.o
+*.elf
+*.map
+*.d
+*.su
+*.cyclo
+
+#STM32CubeIde
+.settings/
+.project
+.cproject
+
+#OS
+.DS_Store
+Thumbs.db
