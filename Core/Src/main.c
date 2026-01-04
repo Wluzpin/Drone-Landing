@@ -21,7 +21,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "VL53L1CX.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -45,7 +45,9 @@ I2C_HandleTypeDef hi2c1;
 UART_HandleTypeDef huart1;
 
 /* USER CODE BEGIN PV */
-
+#define sensor_adress (0x52 << 1) //adres 7 bitowy przesuniety w lewo na potrzeby 8 bitowego adresu obslugiwanego w bibliotece hal
+uint8_t data[2];
+uint16_t distance;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -94,7 +96,7 @@ int main(void)
   MX_I2C1_Init();
   MX_USART1_UART_Init();
   /* USER CODE BEGIN 2 */
-
+  VL53_InitRegisters();
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -102,7 +104,9 @@ int main(void)
   while (1)
   {
     /* USER CODE END WHILE */
-
+	  distance = VL53_ReadDistance();
+	  printf("Odleglosc :d mm\r\n", distance);
+	  HAL_Delay(1000);
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
