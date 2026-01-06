@@ -128,24 +128,25 @@ void VL53_InitRegisters(void) {
     VL53_WriteReg(0x0000, 0x00);
     HAL_Delay(1);
     VL53_WriteReg(0x0000, 0x01);
-
     while (VL53_ReadReg(0x00E5) != 1) {
+    uint16_t timeout = 0;
+    while (VL53_ReadReg(0x00E5) != 1 && timeout < 1000) {
         HAL_Delay(1);
+        timeout++;
     }
-
     for (int i = 0; i < sizeof(vl53l1x_long_range_config); i += 3) {
         uint16_t addr = (vl53l1x_long_range_config[i] << 8) | vl53l1x_long_range_config[i+1];
         uint8_t value = vl53l1x_long_range_config[i+2];
         VL53_WriteReg(addr, value);
     }
-
     VL53_WriteReg(0x0080, 0x01);
 }
-
-uint16_t VL53_ReadDistance(void) {
-    uint8_t data[2];
-    HAL_I2C_Mem_Read(&hi2c1, VL53L1CX_ADDR, 0x0096, I2C_MEMADD_SIZE_16BIT, data, 2, 100);
-    return (data[0] << 8) | data[1];
 }
+
+    uint16_t VL53_ReadDistance(void) {
+        uint8_t data[2];
+        HAL_I2C_Mem_Read(&hi2c1, VL53L1CX_ADDR, 0x0096, I2C_MEMADD_SIZE_16BIT, data, 2, 100);
+        return (data[0] << 8) | data[1];
+    }
 
 
