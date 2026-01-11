@@ -18,13 +18,16 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "dma.h"
 #include "i2c.h"
+#include "tim.h"
 #include "usart.h"
 #include "gpio.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "VL53L1CX.h"
+#include "Ibus.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -45,9 +48,21 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
+/* Kod do sensora*/
 #define sensor_adress (0x52 << 1) //adres 7 bitowy przesuniety w lewo na potrzeby 8 bitowego adresu obslugiwanego w bibliotece hal
 uint8_t data[2];
 uint16_t distance;
+
+/* Kod do RX*/
+
+#define IBUS_FRAME_LEN 32
+#define IBUS_CHANNELS 14
+
+volatile uint16_t ibus_ch[IBUS_CHANNELS];
+volatile uint8_t  ibus_frame[IBUS_FRAME_LEN];
+volatile uint8_t  ibus_rx_buf[IBUS_FRAME_LEN];
+volatile uint8_t  ibus_rx_ready;
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -57,7 +72,7 @@ void SystemClock_Config(void);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
-/* USER CODE BEGIN 0 */A
+/* USER CODE BEGIN 0 */
 
 /* USER CODE END 0 */
 
@@ -90,8 +105,11 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
+  MX_DMA_Init();
   MX_I2C1_Init();
   MX_USART1_UART_Init();
+  MX_TIM3_Init();
+  MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
   // Debug Blink
   HAL_GPIO_WritePin(LED_BLUE_GPIO_Port, LED_BLUE_Pin, GPIO_PIN_SET);
@@ -102,8 +120,10 @@ int main(void)
   HAL_Delay(2000);
   HAL_GPIO_WritePin(LED_BLUE_GPIO_Port, LED_BLUE_Pin, GPIO_PIN_RESET);
 
-  VL53_InitRegisters();
-
+  //VL53_InitRegisters();
+  /* Kod do RX*/
+  HAL_TIM_Base_Start_IT(&htim3);
+  HAL_UART_Receive_DMA(&huart1, ibus_rx_buf, IBUS_FRAME_LEN);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -163,6 +183,37 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
+/* Kod do RX*/
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+{
+    if (htim->Instance == TIM3)
+    {
+        HAL_GPIO_TogglePin(LED_BLUE_GPIO_Port, LED_BLUE_Pin);
+
+        ibus_test();
+        ibus_build();
+
+        HAL_UART_Transmit_DMA(&huart1, ibus_frame, IBUS_FRAME_LEN);
+    }
+}
+
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
+{
+    if (huart->Instance == USART2)
+    {
+        if (ibus_rx_buf[0] == 0x20 && ibus_rx_buf[1] == 0x40)
+        {
+            ibus_decode(ibus_rx_buf, ibus_ch);
+            ibus_rx_ready = 1;
+        }
+
+        HAL_UART_Receive_DMA(&huart2, ibus_rx_buf, IBUS_FRAME_LEN);
+    }
+}
+
+void ibus_test(void);
+void ibus_decode(const uint8_t *b, uint16_t *ch);
+void ibus_build(void);
 
 /* USER CODE END 4 */
 
