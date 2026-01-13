@@ -113,7 +113,7 @@ int main(void)
   HAL_Delay(2000);
   HAL_GPIO_WritePin(LED_BLUE_GPIO_Port, LED_BLUE_Pin, GPIO_PIN_RESET);
 
-  //VL53_InitRegisters();
+  VL53_InitRegisters();
   /* Kod do RX*/
   HAL_TIM_Base_Start_IT(&htim3);
   HAL_UARTEx_ReceiveToIdle_DMA(&huart1, (uint8_t*)ibus_rx_buf, IBUS_FRAME_LEN);
@@ -134,20 +134,15 @@ int main(void)
     }
 
     // 2. Decide between Passthrough and Manual Control
-    // Let's use Channel 7 (AUX1) as the switch. Usually > 1800 is HIGH
     if (ibus_ch_rx[6] > 1800)
     {
         // MANUAL OVERRIDE MODE (from code)
-        // Keep other channels as they are
         for (int i = 0; i < IBUS_CHANNELS; i++) {
         	ibus_ch_tx[i] = ibus_ch_rx[i];
         }
 
-        // Specifically set the values you want to test
-        // Example: Set throttle (ch2) to 1800
+        // Set throttle specifically to 1800 for test
         ibus_ch_tx[2] = 1800;
-        // Or call ibus_test() which ramp up all channels
-        // ibus_test();
     }
     else
     {
@@ -158,12 +153,15 @@ int main(void)
         }
     }
 
-    // 3. Build & send every 7ms
+    // 3. Sensor Reading & Timing (every 7ms)
     static uint32_t last_tx_time = 0;
     uint32_t now = HAL_GetTick();
 
     if (now - last_tx_time >= 7)
     {
+        // Update distance every 7ms loop (sensor has its own timing inside)
+        distance = VL53_ReadDistance();
+
         // 4. Debug: Toggle LED to show we are trying to send
         HAL_GPIO_TogglePin(LED_BLUE_GPIO_Port, LED_BLUE_Pin);
 
