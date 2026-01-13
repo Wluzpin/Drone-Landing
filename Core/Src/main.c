@@ -53,7 +53,9 @@
 uint8_t data[2];
 uint16_t distance;
 
-
+//kod do RXTX
+static uint8_t tx_busy = 0;
+volatile uint8_t ibus_tx_ready = 1;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -122,7 +124,24 @@ int main(void)
   while (1)
   {
     /* USER CODE END WHILE */
+	  if (ibus_tx_ready)
+	  {
+	      ibus_tx_ready = 0;
 
+	      if (ibus_rx_ready)
+	      {
+	          ibus_rx_ready = 0;
+
+	          if (ibus_ch[4] > 1500)   // AUX1
+	          {
+	              ibus_test();        // override throttle only
+	          }
+	          // else: passthrough
+	      }
+
+	      ibus_build();
+	      HAL_UART_Transmit_DMA(&huart2, ibus_frame, IBUS_FRAME_LEN);
+	  }
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
@@ -175,27 +194,31 @@ void SystemClock_Config(void)
 
 /* USER CODE BEGIN 4 */
 /* Kod do RX*/
-void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
-{
-    if (htim->Instance == TIM3)
-    {
-        HAL_GPIO_TogglePin(LED_BLUE_GPIO_Port, LED_BLUE_Pin);
-
-        //ibus_test();
-        if(ibus_rx_ready)
-        {
-        	ibus_rx_ready=0;
-        	if (ibus_ch[4] > 1500)
-        	            {
-        	                // TEST MODE
-        	                ibus_test();
-        	            }
-        }
-        ibus_build();
-
-        HAL_UART_Transmit_DMA(&huart2, ibus_frame, IBUS_FRAME_LEN);
-    }
-}
+//void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+//{
+//    if (htim->Instance == TIM3)
+//    {
+//        HAL_GPIO_TogglePin(LED_BLUE_GPIO_Port, LED_BLUE_Pin);
+//
+//        //ibus_test();
+//        if(ibus_rx_ready)
+//        {
+//        	ibus_rx_ready=0;
+//        	if (ibus_ch[4] > 1500)
+//        	            {
+//        	                // TEST MODE
+//        	                ibus_test();
+//        	            }
+//        }
+//        ibus_build();
+//
+//        if (!tx_busy)
+//        {
+//            tx_busy = 1;
+//            HAL_UART_Transmit_DMA(&huart2, ibus_frame, IBUS_FRAME_LEN);
+//        }
+//    }
+//}
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
@@ -209,6 +232,12 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 
         HAL_UART_Receive_DMA(&huart1, ibus_rx_buf, IBUS_FRAME_LEN);
     }
+}
+
+void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
+{
+	if (huart->Instance == USART2)
+	        ibus_tx_ready = 1;
 }
 
 void ibus_test(void);
