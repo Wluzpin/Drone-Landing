@@ -8,7 +8,8 @@
 #include <stdint.h>
 #include "Ibus.h"
 
-volatile uint16_t ibus_ch[IBUS_CHANNELS];
+volatile uint16_t ibus_ch_rx[IBUS_CHANNELS] = {1500, 1500, 1000, 1500, 1500, 1500, 1500, 1500, 1500, 1500, 1500, 1500, 1500, 1500};
+volatile uint16_t ibus_ch_tx[IBUS_CHANNELS] = {1500, 1500, 1000, 1500, 1500, 1500, 1500, 1500, 1500, 1500, 1500, 1500, 1500, 1500};
 volatile uint8_t  ibus_frame[IBUS_FRAME_LEN];
 volatile uint8_t  ibus_rx_buf[IBUS_FRAME_LEN];
 volatile uint8_t  ibus_rx_ready;
@@ -20,7 +21,7 @@ void ibus_test(void)
     if (v > 2000) v = 1000;
 
     for (int i = 0; i < IBUS_CHANNELS; i++)
-        ibus_ch[i] = v;
+        ibus_ch_tx[i] = v;
 }
 
 void ibus_decode(const uint8_t *b, uint16_t *ch)
@@ -47,18 +48,17 @@ void ibus_build(void)
     ibus_frame[0] = 0x20;
     ibus_frame[1] = 0x40;
 
-    checksum -= ibus_frame[0];
-    checksum -= ibus_frame[1];
-
     for (int i = 0; i < IBUS_CHANNELS; i++)
     {
-        uint16_t v = ibus_ch[i];
-
+        uint16_t v = ibus_ch_tx[i];
         ibus_frame[2 + i*2]     = v & 0xFF;
         ibus_frame[2 + i*2 + 1] = v >> 8;
+    }
 
-        checksum -= ibus_frame[2 + i*2];
-        checksum -= ibus_frame[2 + i*2 + 1];
+    // Checksum: 0xFFFF minus the first 30 bytes
+    for (int i = 0; i < 30; i++)
+    {
+        checksum -= ibus_frame[i];
     }
 
     ibus_frame[30] = checksum & 0xFF;

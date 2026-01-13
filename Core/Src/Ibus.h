@@ -14,7 +14,8 @@
 #define IBUS_FRAME_LEN 32
 #define IBUS_CHANNELS 14
 
-extern volatile uint16_t ibus_ch[IBUS_CHANNELS];
+extern volatile uint16_t ibus_ch_rx[IBUS_CHANNELS];
+extern volatile uint16_t ibus_ch_tx[IBUS_CHANNELS];
 extern volatile uint8_t  ibus_frame[IBUS_FRAME_LEN];
 extern volatile uint8_t  ibus_rx_buf[IBUS_FRAME_LEN];
 extern volatile uint8_t  ibus_rx_ready;

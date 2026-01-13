@@ -116,7 +116,7 @@ int main(void)
   //VL53_InitRegisters();
   /* Kod do RX*/
   HAL_TIM_Base_Start_IT(&htim3);
-  HAL_UART_Receive_DMA(&huart1, ibus_rx_buf, IBUS_FRAME_LEN);
+  HAL_UARTEx_ReceiveToIdle_DMA(&huart1, (uint8_t*)ibus_rx_buf, IBUS_FRAME_LEN);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -125,26 +125,61 @@ int main(void)
   {
     /* USER CODE END WHILE */
 
-
-	          // 1. Update channels from RX if new frame arrived
-	          if (ibus_rx_ready)
-	          {
-	              ibus_rx_ready = 0;
-	              // ibus_ch ALREADY contains decoded RX data
-	          }
-
-	          // 2. Optional override /
-	          if (ibus_ch[6] > 1500)   // AUX1
-	          {
-	              ibus_test();         // modify throttle only
-	          }
-	          // else: pure passthrough (ibus_ch untouched)
-
-	          // 3. Build & send
-	          ibus_build();
-	          HAL_UART_Transmit_DMA(&huart2, ibus_frame, IBUS_FRAME_LEN);
-
     /* USER CODE BEGIN 3 */
+    // 1. Process new RX frame if available
+    if (ibus_rx_ready)
+    {
+        ibus_rx_ready = 0;
+        // Data is now in ibus_ch_rx
+    }
+
+    // 2. Decide between Passthrough and Manual Control
+    // Let's use Channel 7 (AUX1) as the switch. Usually > 1800 is HIGH
+    if (ibus_ch_rx[6] > 1800)
+    {
+        // MANUAL OVERRIDE MODE (from code)
+        // Keep other channels as they are
+        for (int i = 0; i < IBUS_CHANNELS; i++) {
+        	ibus_ch_tx[i] = ibus_ch_rx[i];
+        }
+
+        // Specifically set the values you want to test
+        // Example: Set throttle (ch2) to 1800
+        ibus_ch_tx[2] = 1800;
+        // Or call ibus_test() which ramp up all channels
+        // ibus_test();
+    }
+    else
+    {
+        // PASSTHROUGH MODE (normal operation)
+        for (int i = 0; i < IBUS_CHANNELS; i++)
+        {
+            ibus_ch_tx[i] = ibus_ch_rx[i];
+        }
+    }
+
+    // 3. Build & send every 7ms
+    static uint32_t last_tx_time = 0;
+    uint32_t now = HAL_GetTick();
+
+    if (now - last_tx_time >= 7)
+    {
+        // 4. Debug: Toggle LED to show we are trying to send
+        HAL_GPIO_TogglePin(LED_BLUE_GPIO_Port, LED_BLUE_Pin);
+
+        ibus_build();
+
+        // Use standard Transmit (polling) for now to be 100% sure it works.
+        // 32 bytes at 115200 takes 2.7ms, which is fine in a 7ms window.
+        if (HAL_UART_Transmit(&huart2, (uint8_t*)ibus_frame, IBUS_FRAME_LEN, 10) == HAL_OK)
+        {
+            last_tx_time = now;
+        }
+
+        // Clear any UART errors that might have locked the peripheral (Overrun, etc)
+        __HAL_UART_CLEAR_OREFLAG(&huart1);
+        __HAL_UART_CLEAR_OREFLAG(&huart2);
+    }
   }
   /* USER CODE END 3 */
 }
@@ -222,17 +257,19 @@ void SystemClock_Config(void)
 //    }
 //}
 
-void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
+void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
 {
     if (huart->Instance == USART1)
     {
-        if (ibus_rx_buf[0] == 0x20 && ibus_rx_buf[1] == 0x40)
+        // iBUS frames are always 32 bytes and start with 0x20 0x40
+        if (Size == IBUS_FRAME_LEN && ibus_rx_buf[0] == 0x20 && ibus_rx_buf[1] == 0x40)
         {
-            ibus_decode(ibus_rx_buf, ibus_ch);
+            ibus_decode((uint8_t*)ibus_rx_buf, (uint16_t*)ibus_ch_rx);
             ibus_rx_ready = 1;
         }
 
-        HAL_UART_Receive_DMA(&huart1, ibus_rx_buf, IBUS_FRAME_LEN);
+        // Restart reception to idle
+        HAL_UARTEx_ReceiveToIdle_DMA(&huart1, (uint8_t*)ibus_rx_buf, IBUS_FRAME_LEN);
     }
 }
 
