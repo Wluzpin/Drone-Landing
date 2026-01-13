@@ -124,24 +124,26 @@ int main(void)
   while (1)
   {
     /* USER CODE END WHILE */
-	  if (ibus_tx_ready)
-	  {
-	      ibus_tx_ready = 0;
 
-	      if (ibus_rx_ready)
-	      {
-	          ibus_rx_ready = 0;
 
-	          if (ibus_ch[4] > 1500)   // AUX1
+	          // 1. Update channels from RX if new frame arrived
+	          if (ibus_rx_ready)
 	          {
-	              ibus_test();        // override throttle only
+	              ibus_rx_ready = 0;
+	              // ibus_ch ALREADY contains decoded RX data
 	          }
-	          // else: passthrough
-	      }
 
-	      ibus_build();
-	      HAL_UART_Transmit_DMA(&huart2, ibus_frame, IBUS_FRAME_LEN);
-	  }
+	          // 2. Optional override /
+	          if (ibus_ch[6] > 1500)   // AUX1
+	          {
+	              ibus_test();         // modify throttle only
+	          }
+	          // else: pure passthrough (ibus_ch untouched)
+
+	          // 3. Build & send
+	          ibus_build();
+	          HAL_UART_Transmit_DMA(&huart2, ibus_frame, IBUS_FRAME_LEN);
+
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
