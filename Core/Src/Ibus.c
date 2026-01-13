@@ -8,9 +8,6 @@
 #include <stdint.h>
 #include "Ibus.h"
 
-#define IBUS_FRAME_LEN 32
-#define IBUS_CHANNELS 14
-
 volatile uint16_t ibus_ch[IBUS_CHANNELS];
 volatile uint8_t  ibus_frame[IBUS_FRAME_LEN];
 volatile uint8_t  ibus_rx_buf[IBUS_FRAME_LEN];

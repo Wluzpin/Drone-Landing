@@ -53,15 +53,6 @@
 uint8_t data[2];
 uint16_t distance;
 
-/* Kod do RX*/
-
-#define IBUS_FRAME_LEN 32
-#define IBUS_CHANNELS 14
-
-volatile uint16_t ibus_ch[IBUS_CHANNELS];
-volatile uint8_t  ibus_frame[IBUS_FRAME_LEN];
-volatile uint8_t  ibus_rx_buf[IBUS_FRAME_LEN];
-volatile uint8_t  ibus_rx_ready;
 
 /* USER CODE END PV */
 
@@ -190,16 +181,25 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
     {
         HAL_GPIO_TogglePin(LED_BLUE_GPIO_Port, LED_BLUE_Pin);
 
-        ibus_test();
+        //ibus_test();
+        if(ibus_rx_ready)
+        {
+        	ibus_rx_ready=0;
+        	if (ibus_ch[4] > 1500)
+        	            {
+        	                // TEST MODE
+        	                ibus_test();
+        	            }
+        }
         ibus_build();
 
-        HAL_UART_Transmit_DMA(&huart1, ibus_frame, IBUS_FRAME_LEN);
+        HAL_UART_Transmit_DMA(&huart2, ibus_frame, IBUS_FRAME_LEN);
     }
 }
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
-    if (huart->Instance == USART2)
+    if (huart->Instance == USART1)
     {
         if (ibus_rx_buf[0] == 0x20 && ibus_rx_buf[1] == 0x40)
         {
@@ -207,7 +207,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
             ibus_rx_ready = 1;
         }
 
-        HAL_UART_Receive_DMA(&huart2, ibus_rx_buf, IBUS_FRAME_LEN);
+        HAL_UART_Receive_DMA(&huart1, ibus_rx_buf, IBUS_FRAME_LEN);
     }
 }
 
