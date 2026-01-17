@@ -55,8 +55,8 @@ uint8_t dataReady = 0;
 uint16_t distance_mm;
 VL53L1X_ERROR status=1;
 
-#define sensor_adress (0x52 << 1) //adres 7 bitowy przesuniety w lewo na potrzeby 8 bitowego adresu obslugiwanego w bibliotece hal
-uint8_t data[2];
+#define sensor_adress 0x52 // 0x29 << 1
+uint16_t sensorId = 0;
 uint16_t distance;
 
 //kod do RXTX
@@ -127,16 +127,25 @@ int main(void)
   /* Kod do sensora */
   while (sense_booted == 0) //Czekaj aż skończy się bootowanie sensora
   {
-      VL53L1X_BootState(0x52, &sense_booted);
+      status = VL53L1X_BootState(sensor_adress, &sense_booted);
+      if (status != 0) {
+          // Communication error - stay in loop or signal error
+          HAL_GPIO_TogglePin(LED_BLUE_GPIO_Port, LED_BLUE_Pin);
+          HAL_Delay(100);
+          continue; 
+      }
       HAL_Delay(2);
   }
 
-
-  VL53L1X_SensorInit(0x52);
-  VL53L1X_SetDistanceMode(0x52, 2);      // 1 = Short, 2 = Long
-  VL53L1X_SetTimingBudgetInMs(0x52, 200); // 15–500 ms -> im wiekszy, tym lepszy pomiar ale większa konsumpcja mocy
-  VL53L1X_SetInterMeasurementInMs(0x52, 400); //Czas pomiedzy dwoma pomiarami (musi byc wiekszy lub rowny timing budget, ten u gory czas
-  VL53L1X_StartRanging(0x52); //Zacznij mierzyc
+  if (sense_booted) {
+      status = VL53L1X_SensorInit(sensor_adress);
+      status |= VL53L1X_GetSensorId(sensor_adress, &sensorId); // Powinno być 0xEEAC
+      
+      status |= VL53L1X_SetDistanceMode(sensor_adress, 2);      // 1 = Short, 2 = Long
+      status |= VL53L1X_SetTimingBudgetInMs(sensor_adress, 200); // 15–500 ms
+      status |= VL53L1X_SetInterMeasurementInMs(sensor_adress, 400);
+      status |= VL53L1X_StartRanging(sensor_adress); //Zacznij mierzyc
+  }
 
   /* USER CODE END 2 */
 
@@ -203,15 +212,15 @@ int main(void)
 
     while (dataReady == 0) //
     {
-        VL53L1X_CheckForDataReady(0x52, &dataReady);
+        VL53L1X_CheckForDataReady(sensor_adress, &dataReady);
     }
 
     dataReady = 0;
-    VL53L1X_GetRangeStatus(0x52, &status);
+    VL53L1X_GetRangeStatus(sensor_adress, &status);
     if(status==0)
     {
-		VL53L1X_GetDistance(0x52, &distance_mm);
-		VL53L1X_ClearInterrupt(0x52);
+		VL53L1X_GetDistance(sensor_adress, &distance_mm);
+		VL53L1X_ClearInterrupt(sensor_adress);
     }
 
   }
