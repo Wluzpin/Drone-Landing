@@ -26,8 +26,8 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "VL53L1CX.h"
 #include "Ibus.h"
+#include "VL53L1X_api.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -49,6 +49,12 @@
 
 /* USER CODE BEGIN PV */
 /* Kod do sensora*/
+
+uint8_t sense_booted = 0;
+uint8_t dataReady = 0;
+uint16_t distance_mm;
+VL53L1X_ERROR status=1;
+
 #define sensor_adress (0x52 << 1) //adres 7 bitowy przesuniety w lewo na potrzeby 8 bitowego adresu obslugiwanego w bibliotece hal
 uint8_t data[2];
 uint16_t distance;
@@ -113,10 +119,25 @@ int main(void)
   HAL_Delay(2000);
   HAL_GPIO_WritePin(LED_BLUE_GPIO_Port, LED_BLUE_Pin, GPIO_PIN_RESET);
 
-  VL53_InitRegisters();
+  //VL53_InitRegisters();
   /* Kod do RX*/
   HAL_TIM_Base_Start_IT(&htim3);
   HAL_UARTEx_ReceiveToIdle_DMA(&huart1, (uint8_t*)ibus_rx_buf, IBUS_FRAME_LEN);
+
+  /* Kod do sensora */
+  while (sense_booted == 0) //Czekaj aż skończy się bootowanie sensora
+  {
+      VL53L1X_BootState(0x52, &sense_booted);
+      HAL_Delay(2);
+  }
+
+
+  VL53L1X_SensorInit(0x52);
+  VL53L1X_SetDistanceMode(0x52, 2);      // 1 = Short, 2 = Long
+  VL53L1X_SetTimingBudgetInMs(0x52, 200); // 15–500 ms -> im wiekszy, tym lepszy pomiar ale większa konsumpcja mocy
+  VL53L1X_SetInterMeasurementInMs(0x52, 400); //Czas pomiedzy dwoma pomiarami (musi byc wiekszy lub rowny timing budget, ten u gory czas
+  VL53L1X_StartRanging(0x52); //Zacznij mierzyc
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -134,15 +155,20 @@ int main(void)
     }
 
     // 2. Decide between Passthrough and Manual Control
+    // Let's use Channel 7 (AUX1) as the switch. Usually > 1800 is HIGH
     if (ibus_ch_rx[6] > 1800)
     {
         // MANUAL OVERRIDE MODE (from code)
+        // Keep other channels as they are
         for (int i = 0; i < IBUS_CHANNELS; i++) {
         	ibus_ch_tx[i] = ibus_ch_rx[i];
         }
 
-        // Set throttle specifically to 1800 for test
+        // Specifically set the values you want to test
+        // Example: Set throttle (ch2) to 1800
         ibus_ch_tx[2] = 1800;
+        // Or call ibus_test() which ramp up all channels
+        // ibus_test();
     }
     else
     {
@@ -153,15 +179,11 @@ int main(void)
         }
     }
 
-    // 3. Sensor Reading & Timing (every 7ms)
+    // 3. Build & send every 7ms
     static uint32_t last_tx_time = 0;
     uint32_t now = HAL_GetTick();
-
     if (now - last_tx_time >= 7)
     {
-        // Update distance every 7ms loop (sensor has its own timing inside)
-        distance = VL53_ReadDistance();
-
         // 4. Debug: Toggle LED to show we are trying to send
         HAL_GPIO_TogglePin(LED_BLUE_GPIO_Port, LED_BLUE_Pin);
 
@@ -178,6 +200,20 @@ int main(void)
         __HAL_UART_CLEAR_OREFLAG(&huart1);
         __HAL_UART_CLEAR_OREFLAG(&huart2);
     }
+
+    while (dataReady == 0) //
+    {
+        VL53L1X_CheckForDataReady(0x52, &dataReady);
+    }
+
+    dataReady = 0;
+    VL53L1X_GetRangeStatus(0x52, &status);
+    if(status==0)
+    {
+		VL53L1X_GetDistance(0x52, &distance_mm);
+		VL53L1X_ClearInterrupt(0x52);
+    }
+
   }
   /* USER CODE END 3 */
 }
