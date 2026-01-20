@@ -26,8 +26,8 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "Ibus.h"
 #include "VL53L1X_api.h"
+#include "Ibus.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -49,6 +49,9 @@
 
 /* USER CODE BEGIN PV */
 /* Kod do sensora*/
+#define sensor_adress (0x52 << 1) //adres 7 bitowy przesuniety w lewo na potrzeby 8 bitowego adresu obslugiwanego w bibliotece hal
+uint8_t data[2];
+uint16_t distance;
 
 uint8_t sense_booted = 0;
 uint8_t dataReady = 0;
@@ -125,28 +128,27 @@ int main(void)
   HAL_UARTEx_ReceiveToIdle_DMA(&huart1, (uint8_t*)ibus_rx_buf, IBUS_FRAME_LEN);
 
   /* Kod do sensora */
-  while (sense_booted == 0) //Czekaj aż skończy się bootowanie sensora
-  {
-      status = VL53L1X_BootState(sensor_adress, &sense_booted);
-      if (status != 0) {
-          // Communication error - stay in loop or signal error
-          HAL_GPIO_TogglePin(LED_BLUE_GPIO_Port, LED_BLUE_Pin);
-          HAL_Delay(100);
-          continue; 
-      }
-      HAL_Delay(2);
-  }
+    while (sense_booted == 0) //Czekaj aż skończy się bootowanie sensora
+    {
+        status = VL53L1X_BootState(sensor_adress, &sense_booted);
+        if (status != 0) {
+            // Communication error - stay in loop or signal error
+            HAL_GPIO_TogglePin(LED_BLUE_GPIO_Port, LED_BLUE_Pin);
+            HAL_Delay(100);
+            continue;
+        }
+        HAL_Delay(2);
+    }
 
-  if (sense_booted) {
-      status = VL53L1X_SensorInit(sensor_adress);
-      status |= VL53L1X_GetSensorId(sensor_adress, &sensorId); // Powinno być 0xEEAC
-      
-      status |= VL53L1X_SetDistanceMode(sensor_adress, 2);      // 1 = Short, 2 = Long
-      status |= VL53L1X_SetTimingBudgetInMs(sensor_adress, 200); // 15–500 ms
-      status |= VL53L1X_SetInterMeasurementInMs(sensor_adress, 400);
-      status |= VL53L1X_StartRanging(sensor_adress); //Zacznij mierzyc
-  }
+    if (sense_booted) {
+        status = VL53L1X_SensorInit(sensor_adress);
+        status |= VL53L1X_GetSensorId(sensor_adress, &sensorId); // Powinno być 0xEEAC
 
+        status |= VL53L1X_SetDistanceMode(sensor_adress, 2);      // 1 = Short, 2 = Long
+        status |= VL53L1X_SetTimingBudgetInMs(sensor_adress, 200); // 15–500 ms
+        status |= VL53L1X_SetInterMeasurementInMs(sensor_adress, 400);
+        status |= VL53L1X_StartRanging(sensor_adress); //Zacznij mierzyc
+    }
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -191,6 +193,7 @@ int main(void)
     // 3. Build & send every 7ms
     static uint32_t last_tx_time = 0;
     uint32_t now = HAL_GetTick();
+
     if (now - last_tx_time >= 7)
     {
         // 4. Debug: Toggle LED to show we are trying to send
@@ -210,18 +213,20 @@ int main(void)
         __HAL_UART_CLEAR_OREFLAG(&huart2);
     }
 
+    /*
     while (dataReady == 0) //
-    {
-        VL53L1X_CheckForDataReady(sensor_adress, &dataReady);
-    }
+        {
+            VL53L1X_CheckForDataReady(sensor_adress, &dataReady);
+        }
 
-    dataReady = 0;
-    VL53L1X_GetRangeStatus(sensor_adress, &status);
-    if(status==0)
-    {
-		VL53L1X_GetDistance(sensor_adress, &distance_mm);
-		VL53L1X_ClearInterrupt(sensor_adress);
-    }
+        dataReady = 0;
+        VL53L1X_GetRangeStatus(sensor_adress, &status);
+        if(status==0)
+        {
+    		VL53L1X_GetDistance(sensor_adress, &distance_mm);
+    		VL53L1X_ClearInterrupt(sensor_adress);
+        }
+     */
 
   }
   /* USER CODE END 3 */
