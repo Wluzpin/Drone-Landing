@@ -213,20 +213,17 @@ int main(void)
         __HAL_UART_CLEAR_OREFLAG(&huart2);
     }
 
-    /*
-    while (dataReady == 0) //
-        {
-            VL53L1X_CheckForDataReady(sensor_adress, &dataReady);
-        }
-
+    VL53L1X_CheckForDataReady(sensor_adress, &dataReady);
+    if (dataReady != 0)
+    {
         dataReady = 0;
         VL53L1X_GetRangeStatus(sensor_adress, &status);
         if(status==0)
         {
-    		VL53L1X_GetDistance(sensor_adress, &distance_mm);
-    		VL53L1X_ClearInterrupt(sensor_adress);
+            VL53L1X_GetDistance(sensor_adress, &distance_mm);
+            VL53L1X_ClearInterrupt(sensor_adress);
         }
-     */
+    }
 
   }
   /* USER CODE END 3 */
