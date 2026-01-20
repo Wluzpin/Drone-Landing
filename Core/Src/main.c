@@ -48,11 +48,8 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-/* Kod do sensora*/
-#define sensor_adress (0x52 << 1) //adres 7 bitowy przesuniety w lewo na potrzeby 8 bitowego adresu obslugiwanego w bibliotece hal
-uint8_t data[2];
-uint16_t distance;
 
+/*Sensor*/
 uint8_t sense_booted = 0;
 uint8_t dataReady = 0;
 uint16_t distance_mm;
@@ -65,6 +62,25 @@ uint16_t distance;
 //kod do RXTX
 static uint8_t tx_busy = 0;
 volatile uint8_t ibus_tx_ready = 1;
+
+//Regulator
+uint32_t elapsed_ms = 0;
+int32_t descent_mm = 0;
+uint8_t  autoland_active = 0;
+uint16_t hover_start = 1500;   // captured hover throttle
+uint32_t autoland_start_time = 0;
+uint16_t autoland_start_alt_mm = 0;
+uint16_t desired_alt_mm = 0;
+float Kp_alt = 1.f;   // proportional gain (safe starting value)
+float ch5_norm = 0.f;
+static uint8_t prev_autoland_switch = 0;
+int32_t target = 0;
+uint8_t autoland_switch = 0;
+int32_t error_mm = 0;
+int32_t throttle_cmd = 0;
+
+
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -165,30 +181,71 @@ int main(void)
         // Data is now in ibus_ch_rx
     }
 
-    // 2. Decide between Passthrough and Manual Control
-    // Let's use Channel 7 (AUX1) as the switch. Usually > 1800 is HIGH
-    if (ibus_ch_rx[6] > 1800)
-    {
-        // MANUAL OVERRIDE MODE (from code)
-        // Keep other channels as they are
-        for (int i = 0; i < IBUS_CHANNELS; i++) {
-        	ibus_ch_tx[i] = ibus_ch_rx[i];
-        }
+    for (int i = 0; i < IBUS_CHANNELS; i++)
+            {
+                ibus_ch_tx[i] = ibus_ch_rx[i];
+            }
 
-        // Specifically set the values you want to test
-        // Example: Set throttle (ch2) to 1800
-        ibus_ch_tx[2] = 1800;
-        // Or call ibus_test() which ramp up all channels
-        // ibus_test();
+    autoland_switch = (ibus_ch_rx[6] > 1800);
+
+    // Clamp for safety
+    if (ibus_ch_rx[4] < 1000) ibus_ch_rx[4] = 1000;
+    if (ibus_ch_rx[4] > 2000) ibus_ch_rx[4] = 2000;
+
+    // Normalize to 0.0–1.0
+    ch5_norm = (ibus_ch_rx[4] - 1000.0f) / 1000.0f;
+
+    // Map to Kp range 0.5–1.5
+    Kp_alt = 0.5f + ch5_norm* 1.0f;
+
+    // 2. Decide between Passthrough and Auto Control
+
+    // Rising edge: OFF → ON
+    if (autoland_switch && !prev_autoland_switch)
+    {
+        autoland_active = 1;
+
+        // Capture hover throttle at activation moment
+        hover_start = ibus_ch_rx[2];   // throttle channel
+    }
+
+    // Falling edge: ON → OFF
+    if (!autoland_switch && prev_autoland_switch)
+    {
+        autoland_active = 0;
+    }
+
+    prev_autoland_switch = autoland_switch;
+
+    if (autoland_active)
+    {
+        elapsed_ms = HAL_GetTick() - autoland_start_time;
+
+        descent_mm = (elapsed_ms * 100) / 1000; // 100 mm/s
+        target = autoland_start_alt_mm - descent_mm;
+
+        if (target < 300)
+            target = 300;
+
+        desired_alt_mm = (uint16_t)target;
+
+        error_mm = (int32_t)desired_alt_mm - (int32_t)distance_mm;
+
+        // Proportional control
+        throttle_cmd = hover_start + (int32_t)(Kp_alt * error_mm);
+
+        // Safety limits
+        if (throttle_cmd > 1800) throttle_cmd = 1800;
+        if (throttle_cmd < 1100) throttle_cmd = 1100;
+
+        ibus_ch_tx[2] = throttle_cmd;
     }
     else
     {
-        // PASSTHROUGH MODE (normal operation)
-        for (int i = 0; i < IBUS_CHANNELS; i++)
-        {
-            ibus_ch_tx[i] = ibus_ch_rx[i];
-        }
+        // Normal passthrough
+        ibus_ch_tx[2] = ibus_ch_rx[2];
     }
+
 
     // 3. Build & send every 7ms
     static uint32_t last_tx_time = 0;
